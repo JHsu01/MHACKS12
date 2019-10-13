@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
@@ -15,6 +16,7 @@ import com.bridgefy.sdk.client.*
 import com.bridgefy.sdk.client.MessageListener
 import com.bridgefy.sdk.client.StateListener
 import com.bridgefy.sdk.framework.exceptions.MessageException
+import com.google.gson.Gson
 
 import xin.neoto.redspread.dummy.DummyContent
 import kotlinx.android.synthetic.main.activity_item_list.*
@@ -54,6 +56,7 @@ class ItemListActivity : AppCompatActivity() {
             if (post != null) {
                 val data = HashMap<String, kotlin.Any>()
                 data["id"] = UUID.randomUUID()
+//                Log.d("KYLE1", data["id"].toString())
                 data["title"] = "title"
                 data["content"] = post
                 data["ttd"] = DEFAULT_TTD
@@ -141,15 +144,40 @@ class ItemListActivity : AppCompatActivity() {
                                     Snackbar.LENGTH_LONG
                                 )
                                     .setAction("Action", null).show()
+                                Log.d("KYLE","message" )
                                 if(message !=null){
+//                                    Log.d("KYLE", message.content["id"].toString() )
                                     if(message.content["id"] == null){
                                         for((key,value) in message.content){
+                                            Log.d("KYLE2","hi" )
+
+                                            var contains = false
                                             for(mess in messageList){
+                                                Log.d("KYLE3",mess.content["id"].toString() )
+                                                Log.d("KYLE4",key.toString() )
+
+
                                                 if(mess.content["id"].toString().equals(key.toString())){
                                                     //BOTH DEVICES HAVE MESSAGE
-                                                }else{
-                                                    messageList.add(0, value as Message)
+                                                    contains = true
+                                                    break;
                                                 }
+                                            }
+                                            if(!contains){
+//                                                val data = HashMap<String, kotlin.Any>()
+//                                                data["id"] = value["content"]["id"] as
+//                                                data["title"] = "title"
+//                                                data["content"] = post
+//                                                data["ttd"] = DEFAULT_TTD
+//                                                var test =
+//
+//                                                val message =
+//                                                    Message.Builder().setContent(data).build()
+//                                                var make = HashMap<String, kotlin.Any>()
+
+//                                                messageList.add(0, value as Message)
+                                                Log.d("KYLE7", value.toString())
+                                                Log.d("KYLE7", value.get)
                                             }
                                         }
                                         item_list.adapter?.notifyDataSetChanged()
