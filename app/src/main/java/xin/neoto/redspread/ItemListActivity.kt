@@ -39,14 +39,11 @@ private const val CREATE_POST_CODE = 3
 private const val DEFAULT_TTD = 5
 
 
-class ItemListActivity : AppCompatActivity(), CreatePostFragment.OnFragmentInteractionListener {
+class ItemListActivity : AppCompatActivity() {
 
     var messageList = ArrayList<Message>()
     var numDevices = 0
 
-
-    override fun onFragmentInteraction(uri: Uri) {
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -138,6 +135,12 @@ class ItemListActivity : AppCompatActivity(), CreatePostFragment.OnFragmentInter
                             }
 
                             override fun onMessageReceived(message: Message?) {
+                                Snackbar.make(
+                                    window.decorView.rootView,
+                                    "received !!!",
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction("Action", null).show()
                                 if(message !=null){
                                     if(message.content["id"] == null){
                                         for((key,value) in message.content){
@@ -149,6 +152,7 @@ class ItemListActivity : AppCompatActivity(), CreatePostFragment.OnFragmentInter
                                                 }
                                             }
                                         }
+                                        item_list.adapter?.notifyDataSetChanged()
                                     }else{
                                         super.onMessageReceived(message)
 
