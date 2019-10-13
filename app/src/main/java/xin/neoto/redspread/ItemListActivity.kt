@@ -17,6 +17,7 @@ import com.bridgefy.sdk.client.MessageListener
 import com.bridgefy.sdk.client.StateListener
 import com.bridgefy.sdk.framework.exceptions.MessageException
 import com.google.gson.Gson
+import com.google.gson.internal.LinkedTreeMap
 
 import xin.neoto.redspread.dummy.DummyContent
 import kotlinx.android.synthetic.main.activity_item_list.*
@@ -26,6 +27,7 @@ import kotlinx.android.synthetic.main.item_list_content.*
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 
 /**
@@ -41,9 +43,10 @@ private const val CREATE_POST_CODE = 3
 private const val DEFAULT_TTD = 5
 
 
+
 class ItemListActivity : AppCompatActivity() {
 
-    var messageList = ArrayList<Message>()
+    var messageList = ArrayList<Post>()
     var numDevices = 0
 
 
@@ -52,21 +55,14 @@ class ItemListActivity : AppCompatActivity() {
 
         if (resultCode == Activity.RESULT_OK && requestCode == CREATE_POST_CODE) {
             val post = data?.getStringExtra("POST")
-
             if (post != null) {
-                val data = HashMap<String, kotlin.Any>()
-                data["id"] = UUID.randomUUID()
-//                Log.d("KYLE1", data["id"].toString())
-                data["title"] = "title"
-                data["content"] = post
-                data["ttd"] = DEFAULT_TTD
+                val data = Post("title", post)
 
-                val message =
-                    Message.Builder().setContent(data).build()
-
-                messageList.add(0,message)
+                messageList.add(0, data)
                 item_list.adapter?.notifyDataSetChanged()
 
+                val message =
+                    Message.Builder().setContent(data.toHashmap()).build()
                 Bridgefy.sendBroadcastMessage(message)
             }
 
@@ -112,7 +108,7 @@ class ItemListActivity : AppCompatActivity() {
                         object : MessageListener() {
                             override fun onBroadcastMessageReceived(message: Message?) {
                                 if (message != null) {
-                                    messageList.add(0,message)
+                                    messageList.add(0,Post(message.content as HashMap<String, Any>))
                                     item_list.adapter?.notifyDataSetChanged()
                                 }
 
@@ -144,51 +140,26 @@ class ItemListActivity : AppCompatActivity() {
                                     Snackbar.LENGTH_LONG
                                 )
                                     .setAction("Action", null).show()
-                                Log.d("KYLE","message" )
-                                if(message !=null){
-//                                    Log.d("KYLE", message.content["id"].toString() )
-                                    if(message.content["id"] == null){
-                                        for((key,value) in message.content){
-                                            Log.d("KYLE2","hi" )
-
-                                            var contains = false
-                                            for(mess in messageList){
-                                                Log.d("KYLE3",mess.content["id"].toString() )
-                                                Log.d("KYLE4",key.toString() )
-
-
-                                                if(mess.content["id"].toString().equals(key.toString())){
-                                                    //BOTH DEVICES HAVE MESSAGE
-                                                    contains = true
-                                                    break;
-                                                }
-                                            }
-                                            if(!contains){
-//                                                val data = HashMap<String, kotlin.Any>()
-//                                                data["id"] = value["content"]["id"] as
-//                                                data["title"] = "title"
-//                                                data["content"] = post
-//                                                data["ttd"] = DEFAULT_TTD
-//                                                var test =
-//
-//                                                val message =
-//                                                    Message.Builder().setContent(data).build()
-//                                                var make = HashMap<String, kotlin.Any>()
-
-//                                                messageList.add(0, value as Message)
-                                                Log.d("KYLE7", value.toString())
-                                                Log.d("KYLE7", value.get)
-                                            }
-                                        }
-                                        item_list.adapter?.notifyDataSetChanged()
-                                    }else{
-                                        super.onMessageReceived(message)
-
-                                    }
+                                if (message == null) {
+                                    return
                                 }
+                                val existingUUIDs = HashSet<String>()
+                                for (message in messageList) {
+                                    existingUUIDs.add(message.uuid.toString())
+                                }
+                                val arr =
+                                    message.content["messages"] as ArrayList<LinkedTreeMap<String, Any>>
+                                for (m in arr) {
+                                    if (existingUUIDs.contains(m.get("uuid") as String)) {
+                                        continue
+                                    }
+                                    val post = Post(m.get("title") as String, m.get("content") as String)
+                                    post.uuid = UUID.fromString(m.get("uuid") as String)
+                                    post.ttl = (m.get("ttl") as Double).toInt()
 
-
-
+                                    messageList.add(post)
+                                }
+                                item_list.adapter?.notifyDataSetChanged()
                             }
                         },
                         object : StateListener() {
@@ -219,10 +190,9 @@ class ItemListActivity : AppCompatActivity() {
 
                             override fun onDeviceConnected(device: Device?, session: Session?) {
                                 numDevices++
-                                val data = HashMap<String,kotlin.Any>()
-                                for(m:Message in messageList){
-                                    data.put(m.content["id"].toString(), m)
-                                }
+                                val data = HashMap<String,Any>()
+                                data["messages"] = messageList
+
                                 val message =
                                     Message.Builder().setContent(data).setReceiverId(device?.userId).build()
                                 Bridgefy.sendMessage(message)
@@ -258,7 +228,7 @@ class ItemListActivity : AppCompatActivity() {
 
     class SimpleItemRecyclerViewAdapter(
         private val parentActivity: ItemListActivity,
-        private val values: ArrayList<Message>
+        private val values: ArrayList<Post>
 //        private val twoPane: Boolean
     ) :
         RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
@@ -267,7 +237,7 @@ class ItemListActivity : AppCompatActivity() {
 
         init {
             onClickListener = View.OnClickListener { v ->
-                val item = v.tag as Message
+                val item = v.tag as Post
 //                if (twoPane) {
 //                    val fragment = ItemDetailFragment().apply {
 //                        arguments = Bundle().apply {
@@ -295,12 +265,7 @@ class ItemListActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = values[position]
-            val data = item.content
-//            val title = data["title"]
-            val content = data["content"]
-            val ttd = data["ttd"]
-//            holder.idView.text = title.toString()
-            holder.contentView.text = content.toString()
+            holder.contentView.text = item.content
 
             with(holder.itemView) {
                 tag = item

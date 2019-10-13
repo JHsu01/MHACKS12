@@ -5,11 +5,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.bridgefy.sdk.client.Message
-import xin.neoto.redspread.dummy.DummyContent
-import kotlinx.android.synthetic.main.activity_item_detail.*
-import kotlinx.android.synthetic.main.item_detail.view.*
-
 /**
  * A fragment representing a single Item detail screen.
  * This fragment is either contained in a [ItemListActivity]
@@ -21,7 +16,7 @@ class ItemDetailFragment : Fragment() {
     /**
      * The dummy content this fragment is presenting.
      */
-    private var item: Message? = null
+    private var item: Post? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
