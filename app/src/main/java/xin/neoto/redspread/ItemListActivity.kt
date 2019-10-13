@@ -14,6 +14,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bridgefy.sdk.client.*
 import com.bridgefy.sdk.client.MessageListener
 import com.bridgefy.sdk.client.StateListener
@@ -46,21 +48,26 @@ private const val DEFAULT_TTD = 5
 
 private const val PERMISSION_REQUEST = 0
 
+//
+//object DataHolder {
+//    private var data: ArrayList<Post>? = null
+//
+//    fun getData(): ArrayList<Post>? {
+//        return data
+//    }
+//
+//    fun setData(data: ArrayList<Post>) {
+//        DataHolder.data = data
+//    }
+//}
 
-object DataHolder {
-    private var data: ArrayList<Post>? = null
 
-    fun getData(): ArrayList<Post>? {
-        return data
+class ItemListActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener {
+    override fun onRefresh() {
+        swipe_refresh.isRefreshing = true
+        Log.d("KYLE", "REFRESHING")
+        swipe_refresh.isRefreshing = false
     }
-
-    fun setData(data: ArrayList<Post>) {
-        DataHolder.data = data
-    }
-}
-
-
-class ItemListActivity : AppCompatActivity() {
 
     var messageList = ArrayList<Post>()
     var numDevices = 0
@@ -113,7 +120,9 @@ class ItemListActivity : AppCompatActivity() {
 
         setupRecyclerView(item_list)
 
-        item_list.adapter?.registerAdapterDataObserver(object: RecyclerView.AdapterDataObserver(){
+//        val itemTouchHelper = ItemTouchHelper(SwipeToDeleteCallback(item_list.adapter))
+
+        item_list.adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onChanged() {
                 super.onChanged()
                 checkEmpty()
@@ -130,7 +139,8 @@ class ItemListActivity : AppCompatActivity() {
             }
 
             fun checkEmpty() {
-                empty_view.visibility = (if (item_list.adapter?.itemCount == 0) View.VISIBLE else View.GONE)
+                empty_view.visibility =
+                    (if (item_list.adapter?.itemCount == 0) View.VISIBLE else View.GONE)
             }
         })
 
@@ -140,18 +150,24 @@ class ItemListActivity : AppCompatActivity() {
         val b2 = BridgefyUtils.checkLocationPermissions(applicationContext)
 
 
-        if(!b1 || !b2){
-            ActivityCompat.requestPermissions(this,
-                arrayOf(android.Manifest.permission.BLUETOOTH,
-                        android.Manifest.permission.BLUETOOTH_ADMIN,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION,
-                        android.Manifest.permission.INTERNET), PERMISSION_REQUEST)
+        if (!b1 || !b2) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    android.Manifest.permission.BLUETOOTH,
+                    android.Manifest.permission.BLUETOOTH_ADMIN,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.INTERNET
+                ), PERMISSION_REQUEST
+            )
         }
 //
 //        if (!b1 || !b2) {
 //            Snackbar.make(window.decorView.rootView, "Permission denied", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show()
 //        }
+
+        swipe_refresh.setOnRefreshListener(this)
 
 
         val builder = Config.Builder()
@@ -162,14 +178,21 @@ class ItemListActivity : AppCompatActivity() {
             "f1c2dd65-085a-4fe6-8a3d-dc29aa61dbd6",
             object : RegistrationListener() {
                 override fun onRegistrationSuccessful(bridgefyClient: BridgefyClient) {
-                    Snackbar.make(window.decorView.rootView, "Registration successful", Snackbar.LENGTH_LONG)
+                    Snackbar.make(
+                        window.decorView.rootView,
+                        "Registration successful",
+                        Snackbar.LENGTH_LONG
+                    )
                         .setAction("Action", null).show()
                     // Bridgefy is ready to start
                     Bridgefy.start(
                         object : MessageListener() {
                             override fun onBroadcastMessageReceived(message: Message?) {
                                 if (message != null) {
-                                    messageList.add(0,Post(message.content as HashMap<String, Any>))
+                                    messageList.add(
+                                        0,
+                                        Post(message.content as HashMap<String, Any>)
+                                    )
                                     item_list.adapter?.notifyDataSetChanged()
                                 }
 
@@ -195,12 +218,12 @@ class ItemListActivity : AppCompatActivity() {
                             }
 
                             override fun onMessageReceived(message: Message?) {
-                                Snackbar.make(
-                                    window.decorView.rootView,
-                                    "received !!!",
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction("Action", null).show()
+////                                Snackbar.make(
+////                                    window.decorView.rootView,
+////                                    "received !!!",
+////                                    Snackbar.LENGTH_LONG
+////                                )
+//                                    .setAction("Action", null).show()
                                 if (message == null) {
                                     return
                                 }
@@ -214,16 +237,17 @@ class ItemListActivity : AppCompatActivity() {
                                     if (existingUUIDs.contains(m.get("uuid") as String)) {
                                         continue
                                     }
-                                    val post = Post(m.get("title") as String, m.get("content") as String)
+                                    val post =
+                                        Post(m.get("title") as String, m.get("content") as String)
                                     post.uuid = UUID.fromString(m.get("uuid") as String)
                                     post.ttl = (m.get("ttl") as Double).toInt()
 
                                     //TTD implementation
-                                    post.ttl -=1
+                                    post.ttl -= 1
 
-                                    if(post.ttl<0){
+                                    if (post.ttl < 0) {
                                         //Time for post to die
-                                    }else{
+                                    } else {
                                         messageList.add(post)
                                     }
 
@@ -259,11 +283,12 @@ class ItemListActivity : AppCompatActivity() {
 
                             override fun onDeviceConnected(device: Device?, session: Session?) {
                                 numDevices++
-                                val data = HashMap<String,Any>()
+                                val data = HashMap<String, Any>()
                                 data["messages"] = messageList
 
                                 val message =
-                                    Message.Builder().setContent(data).setReceiverId(device?.userId).build()
+                                    Message.Builder().setContent(data).setReceiverId(device?.userId)
+                                        .build()
                                 Bridgefy.sendMessage(message)
 
 
@@ -345,8 +370,30 @@ class ItemListActivity : AppCompatActivity() {
         override fun getItemCount() = values.size
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//            val idView: TextView = view.id_text
+            //            val idView: TextView = view.id_text
             val contentView: TextView = view.content
         }
     }
+//    class SwipeToDeleteCallback: ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+//
+//
+//        override fun onMove(
+//            recyclerView: RecyclerView,
+//            viewHolder: RecyclerView.ViewHolder,
+//            target: RecyclerView.ViewHolder
+//        ): Boolean {
+//            return false
+//        }
+//
+////    val mAdapter: ItemListActivity.SimpleItemRecyclerViewAdapter =
+//
+//        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+//            val position = viewHolder.adapterPosition
+//            messageList.deleteItem(position)
+//        }
+//
+//
+//    }
+
 }
+
