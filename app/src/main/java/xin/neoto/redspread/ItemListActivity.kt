@@ -12,6 +12,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.bridgefy.sdk.client.*
 import com.bridgefy.sdk.client.MessageListener
 import com.bridgefy.sdk.client.StateListener
@@ -19,12 +21,12 @@ import com.bridgefy.sdk.framework.exceptions.MessageException
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 
-import xin.neoto.redspread.dummy.DummyContent
 import kotlinx.android.synthetic.main.activity_item_list.*
 import kotlinx.android.synthetic.main.item_list_content.view.*
 import kotlinx.android.synthetic.main.item_list.*
 import kotlinx.android.synthetic.main.item_list_content.*
 import java.util.*
+import java.util.jar.Manifest
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
@@ -41,6 +43,8 @@ import kotlin.collections.HashSet
 private const val CREATE_POST_TAG = "CREATE"
 private const val CREATE_POST_CODE = 3
 private const val DEFAULT_TTD = 5
+
+private const val PERMISSION_REQUEST = 0
 
 
 
@@ -87,10 +91,19 @@ class ItemListActivity : AppCompatActivity() {
         val b1 = BridgefyUtils.checkBluetoothPermission(applicationContext)
         val b2 = BridgefyUtils.checkLocationPermissions(applicationContext)
 
-        if (!b1 || !b2) {
-            Snackbar.make(window.decorView.rootView, "Permission denied", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+
+        if(!b1 || !b2){
+            ActivityCompat.requestPermissions(this,
+                arrayOf(android.Manifest.permission.BLUETOOTH,
+                        android.Manifest.permission.BLUETOOTH_ADMIN,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.INTERNET), PERMISSION_REQUEST)
         }
+//
+//        if (!b1 || !b2) {
+//            Snackbar.make(window.decorView.rootView, "Permission denied", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show()
+//        }
 
 
         val builder = Config.Builder()
@@ -101,7 +114,7 @@ class ItemListActivity : AppCompatActivity() {
             "f1c2dd65-085a-4fe6-8a3d-dc29aa61dbd6",
             object : RegistrationListener() {
                 override fun onRegistrationSuccessful(bridgefyClient: BridgefyClient) {
-                    Snackbar.make(window.decorView.rootView, "Reg successful", Snackbar.LENGTH_LONG)
+                    Snackbar.make(window.decorView.rootView, "Registration successful", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show()
                     // Bridgefy is ready to start
                     Bridgefy.start(
@@ -121,12 +134,12 @@ class ItemListActivity : AppCompatActivity() {
                             }
 
                             override fun onMessageSent(messageId: String?) {
-                                Snackbar.make(
-                                    window.decorView.rootView,
-                                    "Sent !!!",
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction("Action", null).show()
+//                                Snackbar.make(
+//                                    window.decorView.rootView,
+//                                    "Sent !!!",
+//                                    Snackbar.LENGTH_LONG
+//                                )
+//                                    .setAction("Action", null).show()
                             }
 
                             override fun onMessageFailed(message: Message?, e: MessageException?) {
@@ -157,7 +170,15 @@ class ItemListActivity : AppCompatActivity() {
                                     post.uuid = UUID.fromString(m.get("uuid") as String)
                                     post.ttl = (m.get("ttl") as Double).toInt()
 
-                                    messageList.add(post)
+                                    //TTD implementation
+                                    post.ttl -=1
+
+                                    if(post.ttl<0){
+                                        //Time for post to die
+                                    }else{
+                                        messageList.add(post)
+                                    }
+
                                 }
                                 item_list.adapter?.notifyDataSetChanged()
                             }
@@ -165,21 +186,21 @@ class ItemListActivity : AppCompatActivity() {
                         object : StateListener() {
 
                             override fun onStarted() {
-                                Snackbar.make(
-                                    window.decorView.rootView,
-                                    "Started!!! ",
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction("Action", null).show()
+//                                Snackbar.make(
+//                                    window.decorView.rootView,
+//                                    "Started!!! ",
+//                                    Snackbar.LENGTH_LONG
+//                                )
+//                                    .setAction("Action", null).show()
                             }
 
                             override fun onStartError(message: String?, errorCode: Int) {
-                                Snackbar.make(
-                                    window.decorView.rootView,
-                                    "Start Error!!! " + message,
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction("Action", null).show()
+//                                Snackbar.make(
+//                                    window.decorView.rootView,
+//                                    "Start Error!!! " + message,
+//                                    Snackbar.LENGTH_LONG
+//                                )
+//                                    .setAction("Action", null).show()
                             }
 
                             override fun onDeviceLost(device: Device?) {
