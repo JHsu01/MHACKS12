@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>The GrapeVine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Comfortaa:700" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="loading">
+        <div id="spinner"></div>
+    </div>
+    <div id="particles-js"></div>
+    <div id="box">
+        <div class="box1 onlywide animated bounceOutLeft" style="animation-delay:1.7s;"></div>
+        <div class="box2 onlywide animated bounceOutLeft" style="animation-delay:1.8s;"></div>
+        <div class="box2 onlywide animated bounceOutLeft" style="animation-delay:1.9s;"></div>
+        <div class="box2 animated bounceOutRight" style="animation-delay:1.9s;"></div>
+        <div class="box2 onlywide animated bounceOutRight" style="animation-delay:1.8s;"></div>
+        <div class="box2 onlywide animated bounceOutRight" style="animation-delay:1.7s;"></div>
+    </div>
+    <a id="about" onclick="showabout()" class="animated fadeIn" style="animation-delay:2.2s;">About Us</a>
+    <a id="work" onclick="showwork()" class="animated fadeIn" style="animation-delay:2.2s;">Download</a>
+    <a id="contact" onclick="showcontact()" class="animated fadeIn" style="animation-delay:2.2s;">How does it work?</a>
+    <div id="middle" class="animated slideInDown" style="animation-delay:2.0s;">
+        <h1>
+            <img src="https://i.ibb.co/2cHWTLS/WA.png" alt="S" style="width:978px;height:291px;" class = "center">
+        </h1>
+
+        <h2>A grape way to communicate anonymously</h2>
+        <div id="menu">
+            <a onclick="showabout()">About Us</a>
+            <a onclick="showwork()">How does it work?</a>
+            <a onclick="showcontact()">Download</a>
+        </div>
+        <table>
+                <tr>
+                    <td class="animated zoomIn" style="animation-delay:2.2s;"><a class="social"><i class="fab fa-facebook"></i></a></td>
+                    <td class="animated zoomIn" style="animation-delay:2.4s;"><a class="social"><i class="fab fa-twitter"></i></a></td>
+                    <td class="animated zoomIn" style="animation-delay:2.6s;"><a class="social"><i class="fab fa-instagram"></i></a></td>
+                    <td class="animated zoomIn" style="animation-delay:2.8s;"><a class="social"><i class="fab fa-dribbble"></i></a></td>
+                </tr>
+        </table>
+    </div>
+    <div id="work_container" class="container">
+        <div onclick="closework()"><i class="fas fa-angle-right"></i></div>
+        <h1>Want to Download our app?</h1>
+        <section>
+            <h2>Click the button below!
+            </h2>
+            <p>
+                (Note: App only works on Android OS 5.0 and up)
+            </p>
+            
+            <div id="used">
+              
+                   
+            <a button class="btn_one" href="GrapeVine.apk" download = "GrapeVine.apk">Android GrapeVine APK</button> </a>
+            
+        </section>
+    </div>
+    <div id="about_container" class="container">
+            <div onclick="closeabout()"><i class="fas fa-angle-left"></i></div>
+            <h1>About Us</h1>
+            <section>
+                    <h2>
+                            <img src="https://cdn.discordapp.com/attachments/632661957521965076/632905652674494464/IMG_20191013_070812__01.jpg" alt="S" style="width:1200px ; height:630px;" class = "center">
+                        </h2>
+                <h3>We're Four students from Purdue that were brought together by a shared intrest in promoting social change-</h3>
+                <p>
+                Our intial goal was to create possible technological solutions for protesters around the globe to socialize anonymously, and quickly. GrapeVine is one of our solutions, a peer-to-peer decentralized 
+                network which relies on proximity to relay information. Private Keys are used as broadcast channel verifications, and self-wiping protocols are attached to each post as an additional security measure. 
+                The advantage of GrapeVine over other messaging platforms is that GrapeVine doesn't require any cellular data or wifi to transmit information, as it operates on Bluetooth LE entirely. Thus, GrapeVine also
+                has a lot of potential to be utilized as a post-natural disaster platform, in cases that cellular towers and networks are down. 
+                </p>
+               
+            </section>
+            <section>
+               
+            </section>
+        </div>
+          <div id="contact_container" class="container">
+            <div onclick="closecontact()"><i class="fas fa-angle-down"></i></div>
+            <h1>The Juicy Stuff~</h1>
+            <section>
+                <h2> Or how a bunch of hard-pressed Bros paired Bluetooth and Bridges to make an apeeling app.</h2>
+               <p>
+                -
+               </p>
+                <p>
+                GrapeVine is the final product of nearly 36 hours worth of Java, Javascript, HTML, CSS, Firebase, Kotlin, & Android Studio. 
+                We utlized the Bridgefy SDK, a number of Bluetooth LE API's, used two complete stranger's phones to check security (thanks guys!)
+                </p>
+                <p>
+                    -
+                </p>
+                <p>
+                    The app itself was mostly written in Kotlin, and assembled in Android Studio. We used a couple different phones for testing, intially just seeing if we could bypass pairing protocols. 
+                    We eventually settled on using Bridgefy's SDK, and built our own messaging protocols on top with other Bluetooth LE API libraries. Java, Javascript, HTML, and CSS were used heavily in the creation
+                    of the website you're currently looking through, and Firebase was used for hosting/analytics. 
+                </p>
+            </section>
+        </div>
+        <div id="footer">
+             
+        </div>
+    <script src="index.js" type="text/javascript"></script>
+    <script src="particles.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
