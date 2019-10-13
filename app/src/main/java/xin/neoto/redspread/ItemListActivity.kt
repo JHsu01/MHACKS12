@@ -64,7 +64,7 @@ class ItemListActivity : AppCompatActivity() {
                 val message =
                     Message.Builder().setContent(data).build()
 
-                messageList.add(0,message)
+                messageList.add(0, message)
                 item_list.adapter?.notifyDataSetChanged()
 
                 Bridgefy.sendBroadcastMessage(message)
@@ -112,7 +112,7 @@ class ItemListActivity : AppCompatActivity() {
                         object : MessageListener() {
                             override fun onBroadcastMessageReceived(message: Message?) {
                                 if (message != null) {
-                                    messageList.add(0,message)
+                                    messageList.add(0, message)
                                     item_list.adapter?.notifyDataSetChanged()
                                 }
 
@@ -144,49 +144,50 @@ class ItemListActivity : AppCompatActivity() {
                                     Snackbar.LENGTH_LONG
                                 )
                                     .setAction("Action", null).show()
-                                Log.d("KYLE","message" )
-                                if(message !=null){
+                                Log.d("KYLE", "message")
+                                if (message != null) {
 //                                    Log.d("KYLE", message.content["id"].toString() )
-                                    if(message.content["id"] == null){
-                                        for((key,value) in message.content){
-                                            Log.d("KYLE2","hi" )
+                                    if (message.content["id"] == null) {
+                                        for ((key, value) in message.content) {
+                                            Log.d("KYLE2", "hi")
 
                                             var contains = false
-                                            for(mess in messageList){
-                                                Log.d("KYLE3",mess.content["id"].toString() )
-                                                Log.d("KYLE4",key.toString() )
+                                            for (mess in messageList) {
+                                                Log.d("KYLE3", mess.content["id"].toString())
+                                                Log.d("KYLE4", key.toString())
 
 
-                                                if(mess.content["id"].toString().equals(key.toString())){
+                                                if (mess.content["id"].toString().equals(key.toString())) {
                                                     //BOTH DEVICES HAVE MESSAGE
                                                     contains = true
                                                     break;
                                                 }
                                             }
-                                            if(!contains){
-//                                                val data = HashMap<String, kotlin.Any>()
-//                                                data["id"] = value["content"]["id"] as
-//                                                data["title"] = "title"
-//                                                data["content"] = post
-//                                                data["ttd"] = DEFAULT_TTD
-//                                                var test =
-//
-//                                                val message =
-//                                                    Message.Builder().setContent(data).build()
+                                            if (!contains) {
+                                                val words = value.toString()
+                                                val data = HashMap<String, kotlin.Any>()
+                                                data["id"] = words.substring(22, 58)
+                                                data["title"] = words.substring(66, 71)
+                                                data["content"] =
+                                                    words.substring(81, words.indexOf('}', 81))
+                                                data["ttd"] = words.substring(14, 15)
+                                                Log.d("KYLE", words.substring(22, 58))
+
+                                                val message =
+                                                    Message.Builder().setContent(data).build()
 //                                                var make = HashMap<String, kotlin.Any>()
 
-//                                                messageList.add(0, value as Message)
-                                                Log.d("KYLE7", value.toString())
-                                                Log.d("KYLE7", value.get)
+                                                messageList.add(0, message)
+//                                                Log.d("KYLE7", value.toString())
+//                                                Log.d("KYLE7", value.get)
                                             }
                                         }
                                         item_list.adapter?.notifyDataSetChanged()
-                                    }else{
+                                    } else {
                                         super.onMessageReceived(message)
 
                                     }
                                 }
-
 
 
                             }
@@ -219,12 +220,13 @@ class ItemListActivity : AppCompatActivity() {
 
                             override fun onDeviceConnected(device: Device?, session: Session?) {
                                 numDevices++
-                                val data = HashMap<String,kotlin.Any>()
-                                for(m:Message in messageList){
+                                val data = HashMap<String, kotlin.Any>()
+                                for (m: Message in messageList) {
                                     data.put(m.content["id"].toString(), m)
                                 }
                                 val message =
-                                    Message.Builder().setContent(data).setReceiverId(device?.userId).build()
+                                    Message.Builder().setContent(data).setReceiverId(device?.userId)
+                                        .build()
                                 Bridgefy.sendMessage(message)
 
 
@@ -311,7 +313,7 @@ class ItemListActivity : AppCompatActivity() {
         override fun getItemCount() = values.size
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-//            val idView: TextView = view.id_text
+            //            val idView: TextView = view.id_text
             val contentView: TextView = view.content
         }
     }
