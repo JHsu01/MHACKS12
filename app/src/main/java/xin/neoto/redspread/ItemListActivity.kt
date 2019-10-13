@@ -1,6 +1,8 @@
 package xin.neoto.redspread
 
+import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +21,9 @@ import kotlinx.android.synthetic.main.activity_item_list.*
 import kotlinx.android.synthetic.main.item_list_content.view.*
 import kotlinx.android.synthetic.main.item_list.*
 import kotlinx.android.synthetic.main.item_list_content.*
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 
 /**
@@ -29,37 +34,54 @@ import kotlinx.android.synthetic.main.item_list_content.*
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-class ItemListActivity : AppCompatActivity() {
+private const val CREATE_POST_TAG = "CREATE"
+private const val CREATE_POST_CODE = 3
+private const val DEFAULT_TTD = 5
 
-    /**
-     * Whether or not the activity is in two-pane mode, i.e. running on a tablet
-     * device.
-     */
-    private var twoPane: Boolean = false
+
+class ItemListActivity : AppCompatActivity(), CreatePostFragment.OnFragmentInteractionListener {
+
+    var messageList = ArrayList<Message>()
+    var numDevices = 0
+
+
+    override fun onFragmentInteraction(uri: Uri) {
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK && requestCode == CREATE_POST_CODE) {
+            val post = data?.getStringExtra("POST")
+
+            if (post != null) {
+                val data = HashMap<String, kotlin.Any>()
+                data["id"] = UUID.randomUUID()
+                data["title"] = "title"
+                data["content"] = post
+                data["ttd"] = DEFAULT_TTD
+
+                val message =
+                    Message.Builder().setContent(data).build()
+
+                messageList.add(0,message)
+                item_list.adapter?.notifyDataSetChanged()
+
+                Bridgefy.sendBroadcastMessage(message)
+            }
+
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_list)
-
         setSupportActionBar(toolbar)
         toolbar.title = title
 
         fab.setOnClickListener { view ->
-            val data = HashMap<String, String>()
-            data.put("foo", "Hello world")
-            val message =
-                Message.Builder().setContent(data).build()
-            Bridgefy.sendBroadcastMessage(message)
-            Snackbar.make(window.decorView.rootView, "Message sent", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
-
-        if (item_detail_container != null) {
-            // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
-            // activity should be in two-pane mode.
-            twoPane = true
+            val intent = Intent(this, CreatePostActivity::class.java)
+            startActivityForResult(intent, CREATE_POST_CODE)
         }
 
         setupRecyclerView(item_list)
@@ -81,45 +103,116 @@ class ItemListActivity : AppCompatActivity() {
         Bridgefy.initialize(
             this.applicationContext,
             "f1c2dd65-085a-4fe6-8a3d-dc29aa61dbd6",
-            object: RegistrationListener() {
+            object : RegistrationListener() {
                 override fun onRegistrationSuccessful(bridgefyClient: BridgefyClient) {
                     Snackbar.make(window.decorView.rootView, "Reg successful", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show()
                     // Bridgefy is ready to start
                     Bridgefy.start(
-                        object: MessageListener() {
+                        object : MessageListener() {
                             override fun onBroadcastMessageReceived(message: Message?) {
-                                Snackbar.make(window.decorView.rootView, "Message !!!", Snackbar.LENGTH_LONG)
-                                    .setAction("Action", null).show()
+                                if (message != null) {
+                                    messageList.add(0,message)
+                                    item_list.adapter?.notifyDataSetChanged()
+                                }
+
+//                                Snackbar.make(
+//                                    window.decorView.rootView,
+//                                    "Message !!!",
+//                                    Snackbar.LENGTH_LONG
+//                                )
+//                                    .setAction("Action", null).show()
                             }
 
                             override fun onMessageSent(messageId: String?) {
-                                Snackbar.make(window.decorView.rootView, "Sent !!!", Snackbar.LENGTH_LONG)
+                                Snackbar.make(
+                                    window.decorView.rootView,
+                                    "Sent !!!",
+                                    Snackbar.LENGTH_LONG
+                                )
                                     .setAction("Action", null).show()
                             }
 
                             override fun onMessageFailed(message: Message?, e: MessageException?) {
                                 super.onMessageFailed(message, e)
                             }
+
+                            override fun onMessageReceived(message: Message?) {
+                                if(message !=null){
+                                    if(message.content["id"] == null){
+                                        for((key,value) in message.content){
+                                            for(mess in messageList){
+                                                if(mess.content["id"].toString().equals(key.toString())){
+                                                    //BOTH DEVICES HAVE MESSAGE
+                                                }else{
+                                                    messageList.add(0, value as Message)
+                                                }
+                                            }
+                                        }
+                                    }else{
+                                        super.onMessageReceived(message)
+
+                                    }
+                                }
+
+
+
+                            }
                         },
-                        object: StateListener() {
+                        object : StateListener() {
+
                             override fun onStarted() {
-                                Snackbar.make(window.decorView.rootView, "Started!!! ", Snackbar.LENGTH_LONG)
+                                Snackbar.make(
+                                    window.decorView.rootView,
+                                    "Started!!! ",
+                                    Snackbar.LENGTH_LONG
+                                )
                                     .setAction("Action", null).show()
                             }
+
                             override fun onStartError(message: String?, errorCode: Int) {
-                                Snackbar.make(window.decorView.rootView, "Start Error!!! " + message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(
+                                    window.decorView.rootView,
+                                    "Start Error!!! " + message,
+                                    Snackbar.LENGTH_LONG
+                                )
                                     .setAction("Action", null).show()
                             }
+
+                            override fun onDeviceLost(device: Device?) {
+                                super.onDeviceLost(device)
+                                numDevices--
+
+                            }
+
                             override fun onDeviceConnected(device: Device?, session: Session?) {
-                                Snackbar.make(window.decorView.rootView, "Device!!!", Snackbar.LENGTH_LONG)
-                                    .setAction("Action", null).show()
+                                numDevices++
+                                val data = HashMap<String,kotlin.Any>()
+                                for(m:Message in messageList){
+                                    data.put(m.content["id"].toString(), m)
+                                }
+                                val message =
+                                    Message.Builder().setContent(data).setReceiverId(device?.userId).build()
+                                Bridgefy.sendMessage(message)
+
+
+//                                Snackbar.make(
+//                                    window.decorView.rootView,
+//                                    "Device!!!",
+//                                    Snackbar.LENGTH_LONG
+//                                )
+//                                    .setAction("Action", null).show()
                             }
-                        }, builder.build())
+                        }, builder.build()
+                    )
                 }
 
                 override fun onRegistrationFailed(errorCode: Int, message: String) {
-                    Snackbar.make(window.decorView.rootView, "Bluetooth failed, " + message, Snackbar.LENGTH_LONG)
+                    Snackbar.make(
+                        window.decorView.rootView,
+                        "Bluetooth failed, " + message,
+                        Snackbar.LENGTH_LONG
+                    )
                         .setAction("Action", null).show()
                     // Something went wrong: handle error code, maybe print the message
                 }
@@ -128,48 +221,54 @@ class ItemListActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, twoPane)
+        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, messageList)
     }
 
-    class SimpleItemRecyclerViewAdapter(private val parentActivity: ItemListActivity,
-                                        private val values: List<DummyContent.DummyItem>,
-                                        private val twoPane: Boolean) :
-            RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+    class SimpleItemRecyclerViewAdapter(
+        private val parentActivity: ItemListActivity,
+        private val values: ArrayList<Message>
+//        private val twoPane: Boolean
+    ) :
+        RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
 
         private val onClickListener: View.OnClickListener
 
         init {
             onClickListener = View.OnClickListener { v ->
-                val item = v.tag as DummyContent.DummyItem
-                if (twoPane) {
-                    val fragment = ItemDetailFragment().apply {
-                        arguments = Bundle().apply {
-                            putString(ItemDetailFragment.ARG_ITEM_ID, item.id)
-                        }
-                    }
-                    parentActivity.supportFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit()
-                } else {
-                    val intent = Intent(v.context, ItemDetailActivity::class.java).apply {
-                        putExtra(ItemDetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    v.context.startActivity(intent)
+                val item = v.tag as Message
+//                if (twoPane) {
+//                    val fragment = ItemDetailFragment().apply {
+//                        arguments = Bundle().apply {
+//                            putString(ItemDetailFragment.ARG_ITEM_ID, item.id)
+//                        }
+//                    }
+//                    parentActivity.supportFragmentManager
+//                        .beginTransaction()
+//                        .replace(R.id.item_detail_container, fragment)
+//                        .commit()
+//                } else {
+                val intent = Intent(v.context, ItemDetailActivity::class.java).apply {
+                    putExtra(ItemDetailFragment.ARG_ITEM_ID, item.uuid)
                 }
+                v.context.startActivity(intent)
+//                }
             }
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.item_list_content, parent, false)
+                .inflate(R.layout.item_list_content, parent, false)
             return ViewHolder(view)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = values[position]
-            holder.idView.text = item.id
-            holder.contentView.text = item.content
+            val data = item.content
+//            val title = data["title"]
+            val content = data["content"]
+            val ttd = data["ttd"]
+//            holder.idView.text = title.toString()
+            holder.contentView.text = content.toString()
 
             with(holder.itemView) {
                 tag = item
@@ -180,7 +279,7 @@ class ItemListActivity : AppCompatActivity() {
         override fun getItemCount() = values.size
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val idView: TextView = view.id_text
+//            val idView: TextView = view.id_text
             val contentView: TextView = view.content
         }
     }
