@@ -21,7 +21,7 @@ class ItemDetailActivity : AppCompatActivity() {
         setSupportActionBar(detail_toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
+            Snackbar.make(view, "Comments coming soon!", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }
 
@@ -61,8 +61,8 @@ class ItemDetailActivity : AppCompatActivity() {
                     // more details, see the Navigation pattern on Android Design:
                     //
                     // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-
-                    navigateUpTo(Intent(this, ItemListActivity::class.java))
+                    onBackPressed()
+//                    navigateUpTo(Intent(this, ItemListActivity::class.java))
                     true
                 }
                 else -> super.onOptionsItemSelected(item)

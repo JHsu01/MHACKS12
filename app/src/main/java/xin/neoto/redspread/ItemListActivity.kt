@@ -22,8 +22,8 @@ import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 
 import kotlinx.android.synthetic.main.activity_item_list.*
+import kotlinx.android.synthetic.main.empty_list_view.*
 import kotlinx.android.synthetic.main.item_list_content.view.*
-import kotlinx.android.synthetic.main.item_list.*
 import kotlinx.android.synthetic.main.item_list_content.*
 import java.util.*
 import java.util.jar.Manifest
@@ -46,6 +46,18 @@ private const val DEFAULT_TTD = 5
 
 private const val PERMISSION_REQUEST = 0
 
+
+object DataHolder {
+    private var data: ArrayList<Post>? = null
+
+    fun getData(): ArrayList<Post>? {
+        return data
+    }
+
+    fun setData(data: ArrayList<Post>) {
+        DataHolder.data = data
+    }
+}
 
 
 class ItemListActivity : AppCompatActivity() {
@@ -73,11 +85,26 @@ class ItemListActivity : AppCompatActivity() {
         }
     }
 
+//    override fun onPause() {
+//        super.onPause()
+//        DataHolder.setData(messageList)
+//    }
+//
+//    override fun onResume() {
+//        super.onResume()
+//        val list = DataHolder.getData()
+//        if(list!=null){
+//            messageList = list
+//        }
+//    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_list)
         setSupportActionBar(toolbar)
         toolbar.title = title
+        toolbar.setTitleTextColor(resources.getColor(R.color.darkAccent))
 
         fab.setOnClickListener { view ->
             val intent = Intent(this, CreatePostActivity::class.java)
@@ -85,6 +112,27 @@ class ItemListActivity : AppCompatActivity() {
         }
 
         setupRecyclerView(item_list)
+
+        item_list.adapter?.registerAdapterDataObserver(object: RecyclerView.AdapterDataObserver(){
+            override fun onChanged() {
+                super.onChanged()
+                checkEmpty()
+            }
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                super.onItemRangeInserted(positionStart, itemCount)
+                checkEmpty()
+            }
+
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+                super.onItemRangeRemoved(positionStart, itemCount)
+                checkEmpty()
+            }
+
+            fun checkEmpty() {
+                empty_view.visibility = (if (item_list.adapter?.itemCount == 0) View.VISIBLE else View.GONE)
+            }
+        })
 
 
         BridgefyUtils.enableBluetooth(applicationContext)
